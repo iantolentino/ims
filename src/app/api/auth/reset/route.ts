@@ -1,0 +1,6 @@
+import bcrypt from "bcryptjs";
+import { NextResponse } from "next/server";
+import { db } from "@/lib/db";
+import { jsonError } from "@/lib/api-auth";
+
+export async function POST(request: Request) { try { const body = await request.json(); const token = String(body.token || ""); const password = String(body.password || ""); if (!token || password.length < 8) return jsonError("A valid token and password of at least 8 characters are required."); const reset = await db.passwordResetToken.findUnique({ where: { token } }); if (!reset || reset.usedAt || reset.expiresAt <= new Date()) return jsonError("Reset token is invalid or expired.", 400); await db.$transaction([db.user.update({ where: { id: reset.userId }, data: { passwordHash: await bcrypt.hash(password, 12), failedLoginAttempts: 0, lockedUntil: null } }), db.passwordResetToken.update({ where: { id: reset.id }, data: { usedAt: new Date() } }), db.session.deleteMany({ where: { userId: reset.userId } }), db.auditLog.create({ data: { userId: reset.userId, action: "PASSWORD_RESET", entity: "User", entityId: reset.userId } })]); return NextResponse.json({ message: "Password updated. You can sign in now." }); } catch (error) { return jsonError(error); } }

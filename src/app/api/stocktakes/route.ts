@@ -1,0 +1,7 @@
+import { NextResponse } from "next/server";
+import { db } from "@/lib/db";
+import { apiAdmin, apiUser, jsonError } from "@/lib/api-auth";
+import { audit } from "@/lib/audit";
+
+export async function GET() { const result = await apiUser(); if ("response" in result) return result.response; return NextResponse.json(await db.stocktakeSession.findMany({ include: { warehouse: true, createdBy: { select: { displayName: true } }, _count: { select: { counts: true } } }, orderBy: { createdAt: "desc" } })); }
+export async function POST(request: Request) { const result = await apiAdmin(); if ("response" in result) return result.response; try { const body = await request.json(); if (!body.warehouseId || !String(body.name || "").trim()) return jsonError("Name and warehouse are required."); const products = await db.product.findMany({ where: { archivedAt: null }, include: { stockLevels: { where: { warehouseId: body.warehouseId } } } }); const session = await db.stocktakeSession.create({ data: { name: String(body.name).trim(), warehouseId: body.warehouseId, createdById: result.user.id, counts: { create: products.map((product) => ({ productId: product.id, systemQuantity: product.stockLevels.reduce((sum, level) => sum + level.quantity, 0) })) } }, include: { counts: true } }); await audit(result.user.id, "CREATE", "StocktakeSession", session.id); return NextResponse.json(session, { status: 201 }); } catch (error) { return jsonError(error); } }
