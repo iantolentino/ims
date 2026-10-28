@@ -5,3 +5,7 @@ out/
 .env.local
 *.log
 *.tsbuildinfo
+
+prototype/database/*.sqlite*
+prototype/backups/*
+!prototype/backups/.htaccess
