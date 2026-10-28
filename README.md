@@ -1,44 +1,10 @@
 # Inventory Management System
 
-The PHP/SQLite local system is at the repository root. See [PHP-README.md](PHP-README.md) for local setup and limitations. The existing Next.js application is retained below pending a migration decision.
+Run `C:\xampp\php\php.exe -S 127.0.0.1:8088 -t C:\xampp\htdocs\ims` and open http://127.0.0.1:8088/. On first visit create the initial super administrator. The first setup screen must only be used on a trusted local machine. Stop the server with Ctrl+C.
 
-# Stockroom / Inventory Management System
+Folders: `frontend` contains CSS and JavaScript; `backend` contains CSV exports and demo seeding; `database` contains the local SQLite connection and database; `authentication` contains sign-in and account management; `backups` is reserved for future backup functionality. The root index contains the prototype interface and handlers.
 
-Stockroom is a dense, warehouse-oriented inventory workspace built with Next.js App Router, TypeScript, Prisma, and MySQL.
+Super administrators can create accounts, activate public registration requests, reset passwords, and delete or restore records. Password reset requests are shown in account management; there is no email delivery. All account permissions and deletion restrictions are experimental. Costs remain visible to every signed-in user. Demo records are fictional.
 
-## Local setup
+This remains a local SQLite prototype, not a cPanel-ready deployment. It lacks production hardening, rate limiting, secure reset delivery, backup tools, MySQL/MariaDB support, full role permissions, and a deployment package. The SQLite file and backups must never be exposed by a web server; Apache denial files are provided, but their effectiveness depends on server configuration, and PHP's built-in server ignores them. Use only on localhost and do not enter sensitive data. Plan and test the migration to MySQL/MariaDB before deployment.
 
-1. Install Node.js 20+ and MySQL 8+.
-2. Copy `.env.example` to `.env` and set `DATABASE_URL` plus a long `SESSION_SECRET`.
-3. Install dependencies: `npm install`.
-4. Create the schema: `npm run db:push`.
-5. Load the demo workspace: `npm run db:seed`.
-6. Start the app: `npm run dev` and open `http://localhost:3000`.
-
-Demo accounts:
-
-- Admin: `admin@stockroom.test` / `Admin123!`
-- Staff: `operator` / `Staff123!`
-
-## Deploy to Vercel
-
-Import the repository as a standard Next.js project. Add `DATABASE_URL`, `SESSION_SECRET`, and `NEXT_PUBLIC_APP_NAME` to the Vercel project environment. Run the schema against the managed MySQL database before opening the app, then run `npm run db:seed` once if demo data is desired.
-
-## phpMyAdmin migration
-
-The schema uses ordinary MySQL tables, columns, foreign keys, indexes, and decimal values. No stored procedures, triggers, or vendor-specific runtime logic are required.
-
-1. In phpMyAdmin, select the IMS database and choose **Export → Custom → SQL**, including structure and data.
-2. On the new MySQL instance, create an empty database with the same character set (usually `utf8mb4`), then use **Import** to upload the SQL dump.
-3. Update only `DATABASE_URL` in the app environment and restart the Next.js process. The application schema and app code do not change.
-4. Verify sign-in and the dashboard, then remove any temporary dump files from public hosting storage.
-
-For a clean schema-only refresh in development, use `npm run db:push`; use `prisma migrate` for tracked development migrations. Always take a phpMyAdmin export before changing a production database.
-
-## Moving from Vercel to cPanel / Node hosting
-
-Build with `npm run build`, run the app with `npm start`, and point the hosting environment at the same MySQL database. Set the same environment variables and use a process manager or the host's Node application runner. Static assets remain in the Next.js build; no schema or application logic changes are needed.
-
-## Current delivery slice
-
-Phase 1 includes the normalized schema foundation, custom session auth, bcrypt password hashing, remember-me sessions, failed-login lockout, audit entries for authentication, reset-token console logging, seed data, and the first dashboard read view. The universal Scan flow is also available from the dashboard: it uses the browser camera with automatic `BarcodeDetector` lookup where supported, accepts manual/USB scanner input as fallback, resolves products, bins, warehouses, and physical assets, and exposes in-context stock or asset updates. Catalog CRUD, purchasing workflows, reporting exports, and admin screens remain next phases.

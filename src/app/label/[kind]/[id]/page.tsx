@@ -1,6 +1,0 @@
-import { notFound } from "next/navigation";
-import { db } from "@/lib/db";
-import { requireUser } from "@/lib/auth";
-import { LabelClient } from "@/components/LabelClient";
-export const dynamic = "force-dynamic";
-export default async function LabelPage({ params }: { params: Promise<{ kind: string; id: string }> }) { await requireUser(); const { kind, id } = await params; if (kind === "product") { const item = await db.product.findUnique({ where: { id } }); if (!item) notFound(); return <LabelClient code={item.barcode || item.sku} name={item.name} detail={`SKU ${item.sku}`} />; } if (kind === "asset") { const item = await db.asset.findUnique({ where: { id } }); if (!item) notFound(); return <LabelClient code={item.tag} name={item.name} detail={`Asset · ${item.status}`} />; } if (kind === "location") { const item = await db.location.findUnique({ where: { id }, include: { warehouse: true } }); if (!item) notFound(); return <LabelClient code={item.code} name={item.name} detail={`Bin · ${item.warehouse.name}`} />; } if (kind === "warehouse") { const item = await db.warehouse.findUnique({ where: { id } }); if (!item) notFound(); return <LabelClient code={item.code} name={item.name} detail="Warehouse" />; } notFound(); }
