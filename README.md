@@ -1,3 +1,7 @@
+# Inventory Management System
+
+The PHP/SQLite local system is at the repository root. See [PHP-README.md](PHP-README.md) for local setup and limitations. The existing Next.js application is retained below pending a migration decision.
+
 # Stockroom / Inventory Management System
 
 Stockroom is a dense, warehouse-oriented inventory workspace built with Next.js App Router, TypeScript, Prisma, and MySQL.
